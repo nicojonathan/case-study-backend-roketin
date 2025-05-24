@@ -13,14 +13,9 @@ func getHour(roketinTotalHoursInDay int, input int) (roketinHour int, iteration 
 }
 
 func getMinute(startMinute int, endMinute int, input int) (roketinMinute int) {
-	fmt.Println("Input: ", input)
-	fmt.Println("Start minute: ", startMinute)
-	fmt.Println("End Minute: ", endMinute)
 	for i := startMinute; i <= endMinute; i++ {
-		fmt.Println(i)
+		roketinMinute = i
 		if i*100 >= input {
-			roketinMinute = i - 1
-			fmt.Println("minute: ", roketinMinute)
 			return roketinMinute
 		}
 	}
@@ -48,7 +43,6 @@ func main() {
 	// convert time on earth to second
 	totalElapsedSecondOnEarth := seconds + (minutes * 60) + (hours * 3600)
 	totalElapsedSecondOnRoketin := totalElapsedSecondOnEarth * 100000 / 86400
-	fmt.Println("totalElapsedSecondOnEarth: ", totalElapsedSecondOnEarth)
 
 	// convert that total elapsed second in hrs:mnt:sec on Roketin Planet
 	roketinTotalHoursInDay := 10
@@ -61,13 +55,10 @@ func main() {
 
 	roketinHour, iteration := getHour(roketinTotalHoursInDay, totalElapsedSecondOnRoketin)
 
-	// jika puluh ribuan, maka set jam
 	if iteration == 4 {
-		fmt.Println("Set jam")
 		resultedRoketinHour = roketinHour
 
 		totalElapsedSecondOnRoketin -= resultedRoketinHour * 10000
-		// misal sisa 3200
 
 		roketinMinute := getMinute(roketinStartMinute, roketinEndMinute, totalElapsedSecondOnRoketin)
 
@@ -79,7 +70,6 @@ func main() {
 		resultedRoketinSecond = roketinSecond
 
 	} else if iteration == 3 {
-		fmt.Println("Set minute")
 		resultedRoketinMinute = getMinute(roketinStartMinute, roketinEndMinute, totalElapsedSecondOnRoketin)
 		totalElapsedSecondOnRoketin -= resultedRoketinMinute * 100
 
@@ -88,8 +78,6 @@ func main() {
 		resultedRoketinSecond = roketinSecond
 
 	} else {
-		fmt.Println("Set second")
-		fmt.Println("Elapsed: ", totalElapsedSecondOnRoketin)
 		resultedRoketinSecond = totalElapsedSecondOnRoketin
 	}
 
