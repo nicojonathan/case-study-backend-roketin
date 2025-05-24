@@ -26,6 +26,24 @@ func InsertMovie(request entity.Movie) (movieID int64, err error) {
 	return movieID, nil
 }
 
+func UpdateMovie(request entity.Movie) error {
+	db := connect()
+	defer db.Close()
+
+	query := `
+		UPDATE movies 
+		SET title = ?, description = ?, duration = ? 
+		WHERE id = ?
+	`
+
+	_, err := db.Exec(query, request.Title, request.Description, request.Duration, request.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func InsertMovieArtist(movie entity.Movie, artists []entity.Artist) error {
 	db := connect()
 	defer db.Close()
@@ -85,5 +103,25 @@ func InsertMovieGenre(movie entity.Movie, genres []entity.Genre) error {
 		strings.Join(valueStrings, ", "))
 
 	_, err := db.Exec(query, valueArgs...)
+	return err
+}
+
+func DeleteMovieArtist(movieID int) error {
+	db := connect()
+	defer db.Close()
+
+	query := "DELETE FROM movie_artists WHERE movie_id=?"
+
+	_, err := db.Exec(query, movieID)
+	return err
+}
+
+func DeleteMovieGenre(movieID int) error {
+	db := connect()
+	defer db.Close()
+
+	query := "DELETE FROM movie_genres WHERE movie_id=?"
+
+	_, err := db.Exec(query, movieID)
 	return err
 }

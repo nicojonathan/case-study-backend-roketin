@@ -15,6 +15,8 @@ func main() {
 	// define endpoints for movies
 	router.HandleFunc("/movies", handler.InsertMovie).Methods("POST")
 
+	router.HandleFunc("/movies/{id}", handler.UpdateMovie).Methods("PUT")
+
 	http.Handle("/", router)
 
 	log.Fatal(http.ListenAndServe(":8080", router))

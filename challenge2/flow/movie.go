@@ -55,3 +55,58 @@ func InsertMovie(request entity.InsertMoviePayload) error {
 
 	return nil
 }
+
+func UpdateMovie(request entity.InsertMoviePayload) (err error) {
+	artistIDs, err := parser.ParseIDs(request.ArtistIDs)
+	if err != nil {
+		return err
+	}
+
+	artists, err := repository.FindArtists(artistIDs)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("Artist" + constant.NotFoundMessage)
+		}
+		return err
+	}
+
+	genreIDs, err := parser.ParseIDs(request.GenreIDs)
+	if err != nil {
+		return err
+	}
+
+	genres, err := repository.FindGenres(genreIDs)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("Genre" + constant.NotFoundMessage)
+		}
+		return err
+	}
+
+	err = repository.UpdateMovie(request.Movie)
+	if err != nil {
+		return err
+	}
+
+	err = repository.DeleteMovieArtist(int(request.Movie.ID))
+	if err != nil {
+		return err
+	}
+
+	err = repository.DeleteMovieGenre(int(request.Movie.ID))
+	if err != nil {
+		return err
+	}
+
+	err = repository.InsertMovieArtist(request.Movie, artists)
+	if err != nil {
+		return err
+	}
+
+	err = repository.InsertMovieGenre(request.Movie, genres)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
