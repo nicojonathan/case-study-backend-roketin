@@ -10,7 +10,7 @@ import (
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/repository"
 )
 
-func InsertMovie(request entity.InsertMovieRequest) error {
+func InsertMovie(request entity.InsertMoviePayload) error {
 	artistIDs, err := parser.ParseIDs(request.ArtistIDs)
 	if err != nil {
 		return err

@@ -1,13 +1,16 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/constant"
+	"github.com/nicojonathan/case-study-backend-roketin/challenge2/entity"
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/flow"
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/parser"
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/response"
+	"github.com/nicojonathan/case-study-backend-roketin/challenge2/util"
 )
 
 func InsertMovie(w http.ResponseWriter, r *http.Request) {
@@ -17,11 +20,24 @@ func InsertMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.ArtistIDs == "" || request.GenreIDs == "" {
-		response.SendErrorResponse(w, 400, "Bad Request! Movie Category and Movie Genre can't be empty")
+	util.PrintJSON(request)
+
+	if request.ArtistIDs == "" || request.GenreIDs == "" || request.Title == "" || request.Description == "" {
+		response.SendErrorResponse(w, 400, "Bad Request! All fields must be filled")
+
+		return
 	}
 
-	err = flow.InsertMovie(request)
+	requestJson, _ := json.Marshal(request)
+	var payload entity.InsertMoviePayload
+	_ = json.Unmarshal(requestJson, &payload)
+
+	payload.Movie.ID = request.ID
+	payload.Movie.Title = request.Title
+	payload.Movie.Description = request.Description
+	payload.Movie.Duration = request.Duration
+
+	err = flow.InsertMovie(payload)
 	if err != nil {
 		if strings.Contains(err.Error(), constant.NotFoundMessage) {
 			response.SendErrorResponse(w, 404, err.Error())

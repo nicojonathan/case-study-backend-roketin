@@ -26,7 +26,7 @@ func FindGenres(gerneIDs []int) (genres []entity.Genre, err error) {
 	}
 
 	// Join the placeholders into the query
-	query := fmt.Sprintf("SELECT * FROM gernes WHERE id IN (%s)", strings.Join(placeholders, ", "))
+	query := fmt.Sprintf("SELECT * FROM genres WHERE id IN (%s)", strings.Join(placeholders, ", "))
 
 	rows, err := db.Query(query, args...)
 	if err != nil {

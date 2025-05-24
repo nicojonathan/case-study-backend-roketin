@@ -13,10 +13,7 @@ func InsertMovie(request entity.Movie) (movieID int64, err error) {
 
 	queryInsertMovie := "INSERT INTO movies (title, description, duration) VALUES (?, ?, ?)"
 
-	// Convert time.Duration to string in HH:MM:SS format
-	durationStr := formatDurationToTime(request.Duration)
-
-	result, err := db.Exec(queryInsertMovie, request.Title, request.Description, durationStr)
+	result, err := db.Exec(queryInsertMovie, request.Title, request.Description, request.Duration)
 	if err != nil {
 		return 0, err
 	}
