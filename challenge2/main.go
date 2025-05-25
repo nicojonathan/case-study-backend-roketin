@@ -15,6 +15,8 @@ func main() {
 	// define endpoints for movies
 	router.HandleFunc("/movies", handler.InsertMovie).Methods("POST")
 
+	router.HandleFunc("/movies/upload-video", handler.UploadMovieToMongoDB).Methods("POST")
+
 	router.HandleFunc("/movies/{id}", handler.UpdateMovie).Methods("PUT")
 
 	router.HandleFunc("/movies", handler.GetAllMovies).Methods("GET")

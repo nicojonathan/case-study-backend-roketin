@@ -122,3 +122,24 @@ func SearchMovie(w http.ResponseWriter, r *http.Request) {
 
 	response.SendSuccessResponseWithData(w, "success", movies)
 }
+
+func UploadMovieToMongoDB(w http.ResponseWriter, r *http.Request) {
+	// limit the maximum file size that can be accepted by this endpoint
+	r.Body = http.MaxBytesReader(w, r.Body, 2*1024*1024*1024)
+
+	// Get file and its metadata
+	file, fileHeader, err := parser.ParseVideoFile(r, "movie")
+	if err != nil {
+		response.SendErrorResponse(w, 400, err.Error())
+		return
+	}
+	defer file.Close()
+
+	data, err := flow.UploadMovieToMongoDB(file, fileHeader)
+	if err != nil {
+		response.SendErrorResponse(w, 500, err.Error())
+		return
+	}
+
+	response.SendSuccessResponseWithData(w, "Movie has been uploaded successfully", data)
+}

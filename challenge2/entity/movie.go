@@ -39,3 +39,9 @@ type MovieDetail struct {
 	Artists string `json:"artists"`
 	Genres  string `json:"genres"`
 }
+
+type MovieMetadata struct {
+	FileID   interface{} `json:"file_id"`
+	Filename string      `json:"filename"`
+	Size     int64       `json:"size"`
+}

@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func connect() *sql.DB {
@@ -15,4 +18,13 @@ func connect() *sql.DB {
 	}
 
 	return db
+}
+
+func ConnectMongo() (client *mongo.Client, err error) {
+	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
