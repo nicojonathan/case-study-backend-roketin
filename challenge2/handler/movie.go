@@ -20,6 +20,12 @@ func InsertMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if request.ArtistIDs == "" || request.GenreIDs == "" || request.Title == "" || request.Description == "" || request.VideoFileID == "" {
+		response.SendErrorResponse(w, 400, "Bad Request! All fields must be filled")
+
+		return
+	}
+
 	requestJson, _ := json.Marshal(request)
 	var payload entity.InsertMoviePayload
 	_ = json.Unmarshal(requestJson, &payload)
@@ -28,12 +34,7 @@ func InsertMovie(w http.ResponseWriter, r *http.Request) {
 	payload.Movie.Title = request.Title
 	payload.Movie.Description = request.Description
 	payload.Movie.Duration = request.Duration
-
-	if request.ArtistIDs == "" || request.GenreIDs == "" || request.Title == "" || request.Description == "" {
-		response.SendErrorResponse(w, 400, "Bad Request! All fields must be filled")
-
-		return
-	}
+	payload.Movie.VideoFileID = request.VideoFileID
 
 	err = flow.InsertMovie(payload)
 	if err != nil {
@@ -61,6 +62,11 @@ func UpdateMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if request.ArtistIDs == "" || request.GenreIDs == "" || request.Title == "" || request.Description == "" || request.VideoFileID == "" {
+		response.SendErrorResponse(w, 400, "Bad Request! All fields must be filled")
+		return
+	}
+
 	requestJson, _ := json.Marshal(request)
 	var payload entity.InsertMoviePayload
 	_ = json.Unmarshal(requestJson, &payload)
@@ -69,6 +75,7 @@ func UpdateMovie(w http.ResponseWriter, r *http.Request) {
 	payload.Movie.Title = request.Title
 	payload.Movie.Description = request.Description
 	payload.Movie.Duration = request.Duration
+	payload.Movie.VideoFileID = request.VideoFileID
 
 	err = flow.UpdateMovie(payload)
 	if err != nil {
@@ -128,7 +135,7 @@ func UploadMovieToMongoDB(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 2*1024*1024*1024)
 
 	// Get file and its metadata
-	file, fileHeader, err := parser.ParseVideoFile(r, "movie")
+	file, fileHeader, err := parser.ParseFileFromForm(r, "movie")
 	if err != nil {
 		response.SendErrorResponse(w, 400, err.Error())
 		return

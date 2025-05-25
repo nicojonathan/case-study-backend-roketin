@@ -2,7 +2,9 @@ package parser
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -100,4 +102,23 @@ func ParseQueryParams(r *http.Request) map[string]string {
 	}
 
 	return params
+}
+
+func ParseFileFromForm(r *http.Request, fieldName string) (multipart.File, *multipart.FileHeader, error) {
+	maxUploadSize := 10 * 1024 * 1024
+	err := r.ParseMultipartForm(int64(maxUploadSize))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	file, fileHeader, err := r.FormFile(fieldName)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if fileHeader.Filename == "" {
+		return nil, nil, errors.New("no file uploaded")
+	}
+
+	return file, fileHeader, nil
 }

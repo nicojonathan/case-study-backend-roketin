@@ -2,20 +2,20 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/constant"
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/entity"
+	"github.com/nicojonathan/case-study-backend-roketin/challenge2/parser"
 )
 
 func InsertMovie(request entity.Movie) (movieID int64, err error) {
 	db := connect()
 	defer db.Close()
 
-	queryInsertMovie := "INSERT INTO movies (title, description, duration) VALUES (?, ?, ?)"
+	queryInsertMovie := "INSERT INTO movies (title, description, duration, video_file_id) VALUES (?, ?, ?, ?)"
 
-	result, err := db.Exec(queryInsertMovie, request.Title, request.Description, request.Duration)
+	result, err := db.Exec(queryInsertMovie, request.Title, request.Description, request.Duration, request.VideoFileID)
 	if err != nil {
 		return 0, err
 	}
@@ -34,11 +34,11 @@ func UpdateMovie(request entity.Movie) error {
 
 	query := `
 		UPDATE movies 
-		SET title = ?, description = ?, duration = ? 
+		SET title = ?, description = ?, duration = ?, video_file_id = ? 
 		WHERE id = ?
 	`
 
-	_, err := db.Exec(query, request.Title, request.Description, request.Duration, request.ID)
+	_, err := db.Exec(query, request.Title, request.Description, request.Duration, request.VideoFileID, request.ID)
 	if err != nil {
 		return err
 	}
@@ -143,6 +143,7 @@ func GetAllMovies(limit int, page int) (movies []entity.MovieDetail, err error) 
 			m.title AS movie_title,
 			m.description AS movie_description,
 			m.duration AS movie_duration,
+			m.video_file_id AS video_file_id,
 			GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS artists,
 			GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres
 		FROM movies m
@@ -166,7 +167,7 @@ func GetAllMovies(limit int, page int) (movies []entity.MovieDetail, err error) 
 	for rows.Next() {
 		moviesFound = true
 		var movie entity.MovieDetail
-		rows.Scan(&movie.Movie.ID, &movie.Movie.Title, &movie.Movie.Description, &movie.Movie.Duration, &movie.Artists, &movie.Genres)
+		rows.Scan(&movie.Movie.ID, &movie.Movie.Title, &movie.Movie.Description, &movie.Movie.Duration, &movie.Movie.VideoFileID, &movie.Artists, &movie.Genres)
 		movies = append(movies, movie)
 	}
 
@@ -187,6 +188,7 @@ func SearchMovie(request entity.SearchMovieRequest) (movies []entity.MovieDetail
 			m.title AS movie_title,
 			m.description AS movie_description,
 			m.duration AS movie_duration,
+			m.video_file_id AS video_file_id,
 			GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS artists,
 			GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres
 		FROM movies m
@@ -208,36 +210,31 @@ func SearchMovie(request entity.SearchMovieRequest) (movies []entity.MovieDetail
 		args = append(args, "%"+strings.ToLower(request.Description)+"%")
 	}
 	if len(request.ArtistIDs) > 0 {
-		arrArtistID := strings.Split(request.ArtistIDs, ",")
-		for i, p := range arrArtistID {
-			arrArtistID[i] = strings.TrimSpace(p)
+		arrArtistID, err := parser.ParseIDs(request.ArtistIDs)
+		if err != nil {
+			return []entity.MovieDetail{}, err
 		}
+
 		placeholders := strings.Repeat("?,", len(arrArtistID))
 		placeholders = placeholders[:len(placeholders)-1] // remove comma
 		conditions = append(conditions, fmt.Sprintf("ma.artist_id IN (%s)", placeholders))
+
 		for _, id := range arrArtistID {
-			idInt, err := strconv.Atoi(id)
-			if err != nil {
-				return nil, err
-			}
-			args = append(args, idInt)
+			args = append(args, id)
 		}
 	}
 	if len(request.GenreIDs) > 0 {
-		arrGenreID := strings.Split(request.GenreIDs, ",")
-		for i, p := range arrGenreID {
-			arrGenreID[i] = strings.TrimSpace(p)
+		arrGenreID, err := parser.ParseIDs(request.GenreIDs)
+		if err != nil {
+			return []entity.MovieDetail{}, err
 		}
+
 		placeholders := strings.Repeat("?,", len(arrGenreID))
 		placeholders = placeholders[:len(placeholders)-1]
 		conditions = append(conditions, fmt.Sprintf("mg.genre_id IN (%s)", placeholders))
-		for _, id := range arrGenreID {
-			idInt, err := strconv.Atoi(id)
-			if err != nil {
-				return nil, err
-			}
 
-			args = append(args, idInt)
+		for _, id := range arrGenreID {
+			args = append(args, id)
 		}
 	}
 
@@ -259,7 +256,7 @@ func SearchMovie(request entity.SearchMovieRequest) (movies []entity.MovieDetail
 	for rows.Next() {
 		moviesFound = true
 		var movie entity.MovieDetail
-		rows.Scan(&movie.Movie.ID, &movie.Movie.Title, &movie.Movie.Description, &movie.Movie.Duration, &movie.Artists, &movie.Genres)
+		rows.Scan(&movie.Movie.ID, &movie.Movie.Title, &movie.Movie.Description, &movie.Movie.Duration, &movie.Movie.VideoFileID, &movie.Artists, &movie.Genres)
 		movies = append(movies, movie)
 	}
 

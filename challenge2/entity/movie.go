@@ -7,6 +7,7 @@ type InsertMovieRequest struct {
 	Duration    string `json:"duration"`
 	ArtistIDs   string `json:"artist_ids"`
 	GenreIDs    string `json:"genre_ids"`
+	VideoFileID string `json:"video_file_id"`
 }
 
 type GetAllMovieRequest struct {
@@ -32,6 +33,7 @@ type Movie struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Duration    string `json:"duration"`
+	VideoFileID string `json:"video_file_id"`
 }
 
 type MovieDetail struct {
