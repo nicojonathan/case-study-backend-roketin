@@ -7,7 +7,7 @@ import (
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/entity"
 )
 
-func SendPostSuccessResponse(w http.ResponseWriter, message string) {
+func SendStandardSuccessResponse(w http.ResponseWriter, message string) {
 	var response entity.StandardResponse
 	response.Status = 200
 	response.Message = message
@@ -23,7 +23,7 @@ func SendErrorResponse(w http.ResponseWriter, status int, message string) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func SendGetSuccessResponse(w http.ResponseWriter, message string, data interface{}) {
+func SendSuccessResponseWithData(w http.ResponseWriter, message string, data interface{}) {
 	var response entity.ResponseWithData
 	response.Status = 200
 	response.Message = message

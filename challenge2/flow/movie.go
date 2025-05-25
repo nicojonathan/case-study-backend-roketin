@@ -117,3 +117,12 @@ func GetAllMovies(request entity.GetAllMovieRequest) (movies []entity.MovieDetai
 
 	return movies, nil
 }
+
+func SearchMovie(request entity.SearchMovieRequest) (movies []entity.MovieDetail, err error) {
+	movies, err = repository.SearchMovie(request)
+	if err != nil {
+		return []entity.MovieDetail{}, err
+	}
+
+	return movies, nil
+}

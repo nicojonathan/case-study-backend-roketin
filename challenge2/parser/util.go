@@ -89,26 +89,15 @@ func ParseIDs(idsStr string) ([]int, error) {
 	return ids, nil
 }
 
-func ParsePaginationParams(r *http.Request) (page int, limit int, err error) {
+func ParseQueryParams(r *http.Request) map[string]string {
+	params := make(map[string]string)
 	query := r.URL.Query()
 
-	// Default values if not provided
-	page = 1
-	limit = 10
-
-	if pageStr := query.Get("page"); pageStr != "" {
-		page, err = strconv.Atoi(pageStr)
-		if err != nil || page < 1 {
-			return 0, 0, fmt.Errorf("invalid page number")
+	for key, values := range query {
+		if len(values) > 0 {
+			params[key] = values[0]
 		}
 	}
 
-	if limitStr := query.Get("limit"); limitStr != "" {
-		limit, err = strconv.Atoi(limitStr)
-		if err != nil || limit < 1 {
-			return 0, 0, fmt.Errorf("invalid limit")
-		}
-	}
-
-	return page, limit, nil
+	return params
 }

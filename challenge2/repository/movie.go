@@ -2,8 +2,10 @@ package repository
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
+	"github.com/nicojonathan/case-study-backend-roketin/challenge2/constant"
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/entity"
 )
 
@@ -169,7 +171,100 @@ func GetAllMovies(limit int, page int) (movies []entity.MovieDetail, err error) 
 	}
 
 	if !moviesFound {
-		return []entity.MovieDetail{}, fmt.Errorf("no movies found")
+		return []entity.MovieDetail{}, fmt.Errorf("movies " + constant.NotFoundMessage)
+	}
+
+	return movies, nil
+}
+
+func SearchMovie(request entity.SearchMovieRequest) (movies []entity.MovieDetail, err error) {
+	db := connect()
+	defer db.Close()
+
+	baseQuery := `
+		SELECT 
+			m.id AS movie_id,
+			m.title AS movie_title,
+			m.description AS movie_description,
+			m.duration AS movie_duration,
+			GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS artists,
+			GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres
+		FROM movies m
+		LEFT JOIN movie_artists ma ON m.id = ma.movie_id
+		LEFT JOIN artists a ON ma.artist_id = a.id
+		LEFT JOIN movie_genres mg ON m.id = mg.movie_id
+		LEFT JOIN genres g ON mg.genre_id = g.id
+	`
+
+	var conditions []string
+	var args []interface{}
+
+	if request.Title != "" {
+		conditions = append(conditions, "LOWER(m.title) LIKE ?")
+		args = append(args, "%"+strings.ToLower(request.Title)+"%")
+	}
+	if request.Description != "" {
+		conditions = append(conditions, "LOWER(m.description) LIKE ?")
+		args = append(args, "%"+strings.ToLower(request.Description)+"%")
+	}
+	if len(request.ArtistIDs) > 0 {
+		arrArtistID := strings.Split(request.ArtistIDs, ",")
+		for i, p := range arrArtistID {
+			arrArtistID[i] = strings.TrimSpace(p)
+		}
+		placeholders := strings.Repeat("?,", len(arrArtistID))
+		placeholders = placeholders[:len(placeholders)-1] // remove comma
+		conditions = append(conditions, fmt.Sprintf("ma.artist_id IN (%s)", placeholders))
+		for _, id := range arrArtistID {
+			idInt, err := strconv.Atoi(id)
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, idInt)
+		}
+	}
+	if len(request.GenreIDs) > 0 {
+		arrGenreID := strings.Split(request.GenreIDs, ",")
+		for i, p := range arrGenreID {
+			arrGenreID[i] = strings.TrimSpace(p)
+		}
+		placeholders := strings.Repeat("?,", len(arrGenreID))
+		placeholders = placeholders[:len(placeholders)-1]
+		conditions = append(conditions, fmt.Sprintf("mg.genre_id IN (%s)", placeholders))
+		for _, id := range arrGenreID {
+			idInt, err := strconv.Atoi(id)
+			if err != nil {
+				return nil, err
+			}
+
+			args = append(args, idInt)
+		}
+	}
+
+	if len(conditions) > 0 {
+		baseQuery += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	baseQuery += `
+		GROUP BY m.id
+		ORDER BY m.id;
+	`
+	rows, err := db.Query(baseQuery, args...)
+	if err != nil {
+		return []entity.MovieDetail{}, err
+	}
+	defer rows.Close()
+
+	moviesFound := false
+	for rows.Next() {
+		moviesFound = true
+		var movie entity.MovieDetail
+		rows.Scan(&movie.Movie.ID, &movie.Movie.Title, &movie.Movie.Description, &movie.Movie.Duration, &movie.Artists, &movie.Genres)
+		movies = append(movies, movie)
+	}
+
+	if !moviesFound {
+		return []entity.MovieDetail{}, fmt.Errorf("movies " + constant.NotFoundMessage)
 	}
 
 	return movies, nil

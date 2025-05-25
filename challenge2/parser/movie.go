@@ -19,6 +19,15 @@ func ParseFormInsertUpdateMovie(r *http.Request) (request entity.InsertMovieRequ
 	return request, nil
 }
 
+func ParseFormSearchMovie(r *http.Request) (request entity.SearchMovieRequest, err error) {
+	err = formParser(r, &request)
+	if err != nil {
+		return entity.SearchMovieRequest{}, errors.New(err.Error())
+	}
+
+	return request, nil
+}
+
 func ParseParamUpdateMovie(r *http.Request) (movieID int, err error) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {

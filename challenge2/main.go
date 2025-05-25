@@ -19,6 +19,8 @@ func main() {
 
 	router.HandleFunc("/movies", handler.GetAllMovies).Methods("GET")
 
+	router.HandleFunc("/movies/search", handler.SearchMovie).Methods("POST")
+
 	http.Handle("/", router)
 
 	log.Fatal(http.ListenAndServe(":8080", router))

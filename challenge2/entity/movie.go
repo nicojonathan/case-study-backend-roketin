@@ -6,18 +6,25 @@ type InsertMovieRequest struct {
 	Description string `json:"description"`
 	Duration    string `json:"duration"`
 	ArtistIDs   string `json:"artist_ids"`
-	GenreIDs    string `json:"genres_ids"`
-}
-
-type InsertMoviePayload struct {
-	Movie     Movie  `json:"movie"`
-	ArtistIDs string `json:"artist_ids"`
-	GenreIDs  string `json:"genres_ids"`
+	GenreIDs    string `json:"genre_ids"`
 }
 
 type GetAllMovieRequest struct {
 	Page  int `json:"page"`
 	Limit int `json:"limit"`
+}
+
+type SearchMovieRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	ArtistIDs   string `json:"artist_ids"`
+	GenreIDs    string `json:"genre_ids"`
+}
+
+type InsertMoviePayload struct {
+	Movie     Movie  `json:"movie"`
+	ArtistIDs string `json:"artist_ids"`
+	GenreIDs  string `json:"genre_ids"`
 }
 
 type Movie struct {

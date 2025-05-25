@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/constant"
@@ -44,7 +45,7 @@ func InsertMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.SendPostSuccessResponse(w, "Movies successfully inserted")
+	response.SendStandardSuccessResponse(w, "Movies successfully inserted")
 }
 
 func UpdateMovie(w http.ResponseWriter, r *http.Request) {
@@ -79,27 +80,45 @@ func UpdateMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.SendPostSuccessResponse(w, "Movies successfully updated")
+	response.SendStandardSuccessResponse(w, "Movies successfully updated")
 }
 
 func GetAllMovies(w http.ResponseWriter, r *http.Request) {
 	var request entity.GetAllMovieRequest
-	var err error
 
-	request.Page, request.Limit, err = parser.ParsePaginationParams(r)
-	if err != nil {
-		response.SendErrorResponse(w, 500, err.Error())
-		return
-	}
+	params := parser.ParseQueryParams(r)
+	request.Limit, _ = strconv.Atoi(params["limit"])
+	request.Page, _ = strconv.Atoi(params["page"])
 
 	movies, err := flow.GetAllMovies(request)
 	if err != nil {
 		if strings.Contains(err.Error(), constant.NotFoundMessage) {
 			response.SendErrorResponse(w, 404, err.Error())
+			return
 		}
 		response.SendErrorResponse(w, 500, err.Error())
 		return
 	}
 
-	response.SendGetSuccessResponse(w, "success", movies)
+	response.SendSuccessResponseWithData(w, "success", movies)
+}
+
+func SearchMovie(w http.ResponseWriter, r *http.Request) {
+	request, err := parser.ParseFormSearchMovie(r)
+	if err != nil {
+		response.SendErrorResponse(w, 400, err.Error())
+		return
+	}
+
+	movies, err := flow.SearchMovie(request)
+	if err != nil {
+		if strings.Contains(err.Error(), constant.NotFoundMessage) {
+			response.SendErrorResponse(w, 404, err.Error())
+			return
+		}
+		response.SendErrorResponse(w, 500, err.Error())
+		return
+	}
+
+	response.SendSuccessResponseWithData(w, "success", movies)
 }
