@@ -4,28 +4,27 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nicojonathan/case-study-backend-roketin/challenge2/constant"
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/entity"
 )
 
-func FindGenres(gerneIDs []int) (genres []entity.Genre, err error) {
+func FindGenres(genreIDs []int) (genres []entity.Genre, err error) {
 	db := connect()
 	defer db.Close()
 
-	// Handle empty input
-	if len(gerneIDs) == 0 {
+	if len(genreIDs) == 0 {
 		return []entity.Genre{}, nil
 	}
 
 	// Build placeholders (?, ?, ?, ...)
-	placeholders := make([]string, len(gerneIDs))
-	args := make([]interface{}, len(gerneIDs))
+	placeholders := make([]string, len(genreIDs))
+	args := make([]interface{}, len(genreIDs))
 
-	for i, id := range gerneIDs {
+	for i, id := range genreIDs {
 		placeholders[i] = "?"
 		args[i] = id
 	}
 
-	// Join the placeholders into the query
 	query := fmt.Sprintf("SELECT * FROM genres WHERE id IN (%s)", strings.Join(placeholders, ", "))
 
 	rows, err := db.Query(query, args...)
@@ -34,18 +33,20 @@ func FindGenres(gerneIDs []int) (genres []entity.Genre, err error) {
 	}
 	defer rows.Close()
 
-	// Fetch rows
 	for rows.Next() {
 		var genre entity.Genre
 		if err := rows.Scan(&genre.ID, &genre.Name); err != nil {
-			return nil, err
+			return []entity.Genre{}, err
 		}
 		genres = append(genres, genre)
 	}
 
-	// Check for errors from iteration
+	if len(genres) != len(genreIDs) {
+		return []entity.Genre{}, fmt.Errorf(constant.NotFoundMessage)
+	}
+
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return []entity.Genre{}, err
 	}
 
 	return genres, nil

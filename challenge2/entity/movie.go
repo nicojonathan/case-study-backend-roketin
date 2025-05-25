@@ -15,6 +15,11 @@ type InsertMoviePayload struct {
 	GenreIDs  string `json:"genres_ids"`
 }
 
+type GetAllMovieRequest struct {
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+}
+
 type Movie struct {
 	ID          int64  `json:"id"`
 	Title       string `json:"title"`
@@ -22,7 +27,8 @@ type Movie struct {
 	Duration    string `json:"duration"`
 }
 
-type StandardResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
+type MovieDetail struct {
+	Movie   Movie  `json:"movie"`
+	Artists string `json:"artists"`
+	Genres  string `json:"genres"`
 }

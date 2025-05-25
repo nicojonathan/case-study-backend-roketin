@@ -22,3 +22,12 @@ func SendErrorResponse(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
+
+func SendGetSuccessResponse(w http.ResponseWriter, message string, data interface{}) {
+	var response entity.ResponseWithData
+	response.Status = 200
+	response.Message = message
+	response.Data = data
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}

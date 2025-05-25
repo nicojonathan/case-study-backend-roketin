@@ -71,21 +71,44 @@ func formParser(r *http.Request, v interface{}) error {
 }
 
 func ParseIDs(idsStr string) ([]int, error) {
-	// Remove spaces and split by comma
 	idStrings := strings.Split(idsStr, ",")
 	var ids []int
 
 	for _, s := range idStrings {
-		s = strings.TrimSpace(s) // Remove surrounding spaces
+		s = strings.TrimSpace(s)
 		if s == "" {
-			continue // skip empty items
+			continue
 		}
 		id, err := strconv.Atoi(s)
 		if err != nil {
-			return nil, err // Return error if conversion fails
+			return nil, err
 		}
 		ids = append(ids, id)
 	}
 
 	return ids, nil
+}
+
+func ParsePaginationParams(r *http.Request) (page int, limit int, err error) {
+	query := r.URL.Query()
+
+	// Default values if not provided
+	page = 1
+	limit = 10
+
+	if pageStr := query.Get("page"); pageStr != "" {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			return 0, 0, fmt.Errorf("invalid page number")
+		}
+	}
+
+	if limitStr := query.Get("limit"); limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil || limit < 1 {
+			return 0, 0, fmt.Errorf("invalid limit")
+		}
+	}
+
+	return page, limit, nil
 }

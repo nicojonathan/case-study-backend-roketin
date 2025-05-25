@@ -17,6 +17,8 @@ func main() {
 
 	router.HandleFunc("/movies/{id}", handler.UpdateMovie).Methods("PUT")
 
+	router.HandleFunc("/movies", handler.GetAllMovies).Methods("GET")
+
 	http.Handle("/", router)
 
 	log.Fatal(http.ListenAndServe(":8080", router))

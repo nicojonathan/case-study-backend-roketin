@@ -1,7 +1,6 @@
 package flow
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/nicojonathan/case-study-backend-roketin/challenge2/constant"
@@ -21,19 +20,18 @@ func InsertMovie(request entity.InsertMoviePayload) error {
 		return err
 	}
 
-	// get artist based on id
 	artists, err := repository.FindArtists(artistIDs)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("Artist" + constant.NotFoundMessage)
+		if err.Error() == constant.NotFoundMessage {
+			return fmt.Errorf("Artist " + constant.NotFoundMessage)
 		}
 		return err
 	}
 
 	genres, err := repository.FindGenres(genreIDs)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("Genre" + constant.NotFoundMessage)
+		if err.Error() == constant.NotFoundMessage {
+			return fmt.Errorf("Genre " + constant.NotFoundMessage)
 		}
 		return err
 	}
@@ -64,8 +62,8 @@ func UpdateMovie(request entity.InsertMoviePayload) (err error) {
 
 	artists, err := repository.FindArtists(artistIDs)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("Artist" + constant.NotFoundMessage)
+		if err.Error() == constant.NotFoundMessage {
+			return fmt.Errorf("Artist " + constant.NotFoundMessage)
 		}
 		return err
 	}
@@ -77,8 +75,8 @@ func UpdateMovie(request entity.InsertMoviePayload) (err error) {
 
 	genres, err := repository.FindGenres(genreIDs)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("Genre" + constant.NotFoundMessage)
+		if err.Error() == constant.NotFoundMessage {
+			return fmt.Errorf("Genre " + constant.NotFoundMessage)
 		}
 		return err
 	}
@@ -109,4 +107,13 @@ func UpdateMovie(request entity.InsertMoviePayload) (err error) {
 	}
 
 	return nil
+}
+
+func GetAllMovies(request entity.GetAllMovieRequest) (movies []entity.MovieDetail, err error) {
+	movies, err = repository.GetAllMovies(request.Limit, request.Page)
+	if err != nil {
+		return []entity.MovieDetail{}, err
+	}
+
+	return movies, nil
 }

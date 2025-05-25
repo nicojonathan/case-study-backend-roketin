@@ -49,17 +49,15 @@ func InsertMovieArtist(movie entity.Movie, artists []entity.Artist) error {
 	defer db.Close()
 
 	if len(artists) == 0 {
-		return nil // No artists to insert
+		return nil
 	}
 
-	// Single artist — insert one row
 	if len(artists) == 1 {
 		query := "INSERT INTO movie_artists (movie_id, artist_id) VALUES (?, ?)"
 		_, err := db.Exec(query, movie.ID, artists[0].ID)
 		return err
 	}
 
-	// Multiple artists — build bulk insert query
 	valueStrings := make([]string, 0, len(artists))
 	valueArgs := make([]interface{}, 0, len(artists)*2)
 
@@ -80,17 +78,15 @@ func InsertMovieGenre(movie entity.Movie, genres []entity.Genre) error {
 	defer db.Close()
 
 	if len(genres) == 0 {
-		return nil // No genres to insert
+		return nil
 	}
 
-	// Insert one row if only one genre
 	if len(genres) == 1 {
 		query := "INSERT INTO movie_genres (movie_id, genre_id) VALUES (?, ?)"
 		_, err := db.Exec(query, movie.ID, genres[0].ID)
 		return err
 	}
 
-	// Insert multiple rows at once
 	valueStrings := make([]string, 0, len(genres))
 	valueArgs := make([]interface{}, 0, len(genres)*2)
 
@@ -124,4 +120,57 @@ func DeleteMovieGenre(movieID int) error {
 
 	_, err := db.Exec(query, movieID)
 	return err
+}
+
+func GetAllMovies(limit int, page int) (movies []entity.MovieDetail, err error) {
+	db := connect()
+	defer db.Close()
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	query := `
+		SELECT 
+			m.id AS movie_id,
+			m.title AS movie_title,
+			m.description AS movie_description,
+			m.duration AS movie_duration,
+			GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS artists,
+			GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres
+		FROM movies m
+		LEFT JOIN movie_artists ma ON m.id = ma.movie_id
+		LEFT JOIN artists a ON ma.artist_id = a.id
+		LEFT JOIN movie_genres mg ON m.id = mg.movie_id
+		LEFT JOIN genres g ON mg.genre_id = g.id
+		GROUP BY m.id
+		ORDER BY m.id
+		LIMIT ? OFFSET ?;
+	`
+
+	rows, err := db.Query(query, limit, offset)
+	if err != nil {
+		return []entity.MovieDetail{}, err
+	}
+
+	defer rows.Close()
+
+	moviesFound := false
+	for rows.Next() {
+		moviesFound = true
+		var movie entity.MovieDetail
+		rows.Scan(&movie.Movie.ID, &movie.Movie.Title, &movie.Movie.Description, &movie.Movie.Duration, &movie.Artists, &movie.Genres)
+		movies = append(movies, movie)
+	}
+
+	if !moviesFound {
+		return []entity.MovieDetail{}, fmt.Errorf("no movies found")
+	}
+
+	return movies, nil
 }

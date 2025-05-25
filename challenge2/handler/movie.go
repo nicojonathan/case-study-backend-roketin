@@ -38,6 +38,7 @@ func InsertMovie(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if strings.Contains(err.Error(), constant.NotFoundMessage) {
 			response.SendErrorResponse(w, 404, err.Error())
+			return
 		}
 		response.SendErrorResponse(w, 500, err.Error())
 		return
@@ -72,10 +73,33 @@ func UpdateMovie(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if strings.Contains(err.Error(), constant.NotFoundMessage) {
 			response.SendErrorResponse(w, 404, err.Error())
+			return
 		}
 		response.SendErrorResponse(w, 500, err.Error())
 		return
 	}
 
 	response.SendPostSuccessResponse(w, "Movies successfully updated")
+}
+
+func GetAllMovies(w http.ResponseWriter, r *http.Request) {
+	var request entity.GetAllMovieRequest
+	var err error
+
+	request.Page, request.Limit, err = parser.ParsePaginationParams(r)
+	if err != nil {
+		response.SendErrorResponse(w, 500, err.Error())
+		return
+	}
+
+	movies, err := flow.GetAllMovies(request)
+	if err != nil {
+		if strings.Contains(err.Error(), constant.NotFoundMessage) {
+			response.SendErrorResponse(w, 404, err.Error())
+		}
+		response.SendErrorResponse(w, 500, err.Error())
+		return
+	}
+
+	response.SendGetSuccessResponse(w, "success", movies)
 }
